@@ -102,24 +102,32 @@
 
         // fires when the 'get prices' button is clicked.
         $(submit_button).click(function(event){
-            event.preventDefault();
-            let material = $("#material").val();
 
-            // We have to multiply these two values by 10 because they're entered on the form in cm, but they're sent to the API as mm.
+            // Stop the button from submitting the form.
+            event.preventDefault();
+
+            let material = $("#material").val();
+            let qty =  $("#quantity").val();
+
+            // We have to multiply these two values by 10 because they're entered on the form in cm, but they're sent to the API in mm.
             let width = $("#width").val() * 10;
             let height = $("#height").val() * 10;
 
-            let qty =  $("#quantity").val();
-
-            let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity="+qty+"&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
+            let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity="+ qty +"&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
 
             $.get(url, function(data) {
-                $("#stickerapp_price").text("StickerApp price : "+data.price);
-                let price = data.price.replace(/\D/g,'');
-                let our_price = (price * .95).toFixed(2);
-                $("#our_price").text("Our price : £"+our_price);
+            // this code runs when we get the data back from the request.
+                // Show their price.
+                $("#stickerapp_price").text("StickerApp price : " + data.price);
+                // The price has a £ sign in it that we need to remove before we can do any maths with it
+                let formatted_price = data.price.replace(/\D/g,'');
+                // Now we've removed the non-numeric characters we can calculate our price and round it to 2 decimal places.
+                let our_price = (formatted_price * .95).toFixed(2);
+                // Show our price.
+                $("#our_price").text("Our price : £" + our_price);
             })
         });
+
 
         // Fires whenever someone changes the height, width or quantity
         $('input').change(function(){
