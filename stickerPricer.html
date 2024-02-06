@@ -127,8 +127,13 @@
         });
 
 
-        // Fires whenever someone changes the height, width or quantity
-        $('input').change(function(){
+        // Fires whenever someone changes any of the form values
+        $('input, #material').change(function(){
+
+            // Clear the displayed prices when an input changes.
+            $("#stickerapp_price").text("");
+            $("#our_price").text("");
+
             if(validate()) {
                 // if the values are valid, enable the button
                 submit_button.prop('disabled', false);
