@@ -5,45 +5,45 @@
     <title>Sticker Pricer</title>
 </head>
 <body>
-    <form id="price_form">
-        <label for="material">Select the material</label>
-        <select name="material" id="material">
-            <option value="glossy_coated">Glossy Coated</option>
-            <option value="holographic">Holographic</option>
-            <option value="glow_in_the_dark">Glow In The Dark</option>
-            <option value="glitter">Glitter</option>
-            <option value="transparent">Transparent</option>
-            <option value="mirror">Mirror</option>
-            <option value="prismatic">Prismatic</option>
-            <option value="borstad_alu">Borstad Alu/option>
-            <option value="epoxy_hi_tack">Epoxy Hi Tack</option>
-            <option value="heavy_duty">Heavy Duty</option>
-            <option value="kraft_paper">Kraft Paper</option>
-            <option value="removable_laser">Removable Laser</option>
-            <option value="wall_sticker">Wall Sticker</option>
-            <option value="pixie_dust">Pixie Dust</option>
-            <option value="glossy_coated_thin">Glossy Coated Thin</option>
-            <option value="sandy_hi_tack">Sandy Hi Tack</option>
-            <option value="reflective_digi">Reflective Digi</option>
-            <option value="double_sided_coverall">Double Sided Coverall</option>
-            <option value="window_laser">Window Laser</option>
-            <option value="glossy_hi_tack_digi">Glossy Hi Tack Gigi</option>
+<form id="price_form">
+    <label for="material">Select the material</label>
+    <select name="material" id="material">
+        <option value="glossy_coated">Glossy Coated</option>
+        <option value="holographic">Holographic</option>
+        <option value="glow_in_the_dark">Glow In The Dark</option>
+        <option value="glitter">Glitter</option>
+        <option value="transparent">Transparent</option>
+        <option value="mirror">Mirror</option>
+        <option value="prismatic">Prismatic</option>
+        <option value="borstad_alu">Borstad Alu/option>
+        <option value="epoxy_hi_tack">Epoxy Hi Tack</option>
+        <option value="heavy_duty">Heavy Duty</option>
+        <option value="kraft_paper">Kraft Paper</option>
+        <option value="removable_laser">Removable Laser</option>
+        <option value="wall_sticker">Wall Sticker</option>
+        <option value="pixie_dust">Pixie Dust</option>
+        <option value="glossy_coated_thin">Glossy Coated Thin</option>
+        <option value="sandy_hi_tack">Sandy Hi Tack</option>
+        <option value="reflective_digi">Reflective Digi</option>
+        <option value="double_sided_coverall">Double Sided Coverall</option>
+        <option value="window_laser">Window Laser</option>
+        <option value="glossy_hi_tack_digi">Glossy Hi Tack Gigi</option>
 
-        </select><br><br>
+    </select><br><br>
     <label for="width">Width (cm)</label>
     <input type="number" id="width" class="width" name="width" step=".1" max="27.5" min="2.5" value="0">
     <label for="height">Height (cm)</label>
     <input type="number" id="height" class="height" name="height" step=".1" max="27.5" min="2.5" value="0">
-        <br><br>
+    <br><br>
     <label for="quantity">Quantity</label>
     <input type="number" id="quantity" class="quantity" name="quantity" step="1" value="0">
-        <br><br>
+    <br><br>
     <button id="get_price" disabled="disabled">Get Price</button>
-    </form>
-    <div id="price">
-        <p id="stickerapp_price"></p>
-        <p id="our_price"></p>
-    </div>
+</form>
+<div id="price">
+    <p id="stickerapp_price"></p>
+    <p id="our_price"></p>
+</div>
 
 </body>
 </html>
@@ -54,6 +54,29 @@
         crossorigin="anonymous"></script>
 
 <script>
+
+    // Hey GraffHQ web guy!
+    // Who wants to abuse a 3rd party API! for fun and profit!
+    // Well you're in luck because StickerApp are dumb fucks and their API works exclusively on GET requests.
+    // It doesn't matter who the fuck we are, or where the fuck our requests come from because StickerApp will respond to your unauthenticated request every single time
+    // You just need to format the url correctly, swap in some values and boom - stickerapp will give you their price.
+
+    // Here's an example GET request.
+    //  https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName=glossy_coated&quantity=95&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=50&heightMM=31&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note
+    // it's pretty long and pretty fugly, but that's just fine. All we need to do is swap the values for material, height, width and quantity, and stickerapp will send prices right back.
+    // Throw it into your browser or better yet into Postman, and you'll see the data object being sent back in response.
+
+    // as well as the price you're asking for, their API sends a bunch of other info that seems to be useless to everybody *except* some dirty hacker trying to abuse their API. (That's us)
+    // check this out - as a standard part of a response to any request, they send the full list of sticker materials their API will accept, so building the materials select was super easy.
+    // I have no idea why they include that, but it makes our lives super easy. Bigup the stickerapp API devs for being complete spastics, apparently.
+
+    // Only thing to note really is that the minimum quantity of stickers you can order changes as you change the sticker dimensions.
+    // because of this, every time we change any of the form values, we call out to the API to pass it the new dimsnesions/material, and grab the min quantity it sends back, then use that to set the min on the number input for quantity.
+
+    // If you can't already tell from the form styling, I am a back-end developer, so you're very likely a better JS programmer than me and can clean this shit up a bit.
+    // You might even want to switch it to vanilla JS instead of putting up with my horrible abuse of jQuery.
+
+    // any questions you can hit me up at ben.codemonkey@gmail.com or on discord where my username is .wellard
 
     $( document ).ready(function() {
 
@@ -84,7 +107,6 @@
             })
         });
         $('input').change(function(){
-            let foo = validate();
             if(validate()) {
                 submit_button.prop('disabled', false);
             } else {
@@ -93,6 +115,13 @@
         });
 
     });
+
+    // This function just checks if the values are within accepted bounds.
+    // height and width are taken on the front end in cm, but must be passed to the API in mm.
+    // min value for height/width is 25mm, max value is 275mm.
+    // This then calls our set_min_qty function which fires an api request, checks the response for min quantity, and
+    // sets the min value of the quantity input to that value. If the quantity select is set to a value bellow this minimum
+    // then we modify that value and set it to the minimum.
     function validate(){
         let material = $("#material").val();
         let width = $("#width").val();
@@ -104,11 +133,13 @@
         if(height * 10 > 275 || height * 10 < 25 || width * 10 > 275 || width * 10 < 25) {
             return false;
         }
-        let foo = get_min_qty(material,height,width);
+        set_min_qty(material,height,width);
         return true;
     }
 
-    function get_min_qty(material, height, width){
+    // Fires a request at the API, gets the minimum quantity for the given sticker material and dimensions from the response.
+    // Sets value of the quantity select to that minimum if it is currently set to a lower value t
+    function set_min_qty(material, height, width){
         let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity=0&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
         $.get(url, function(data) {
             $("#quantity").attr({
@@ -117,7 +148,7 @@
             if($("#quantity").val() < data.minQuantity) {
                 $("#quantity").val(data.minQuantity)
             }
-           return data;
+            return true;
         })
     }
 </script>
