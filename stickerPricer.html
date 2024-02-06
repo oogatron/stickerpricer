@@ -102,7 +102,7 @@
             $.get(url, function(data) {
                 $("#stickerapp_price").text("StickerApp price : "+data.price);
                 let price = data.price.replace(/\D/g,'');
-                let our_price = price * .95
+                let our_price = (price * .95).toFixed(2);
                 $("#our_price").text("Our price : £"+our_price);
             })
         });
