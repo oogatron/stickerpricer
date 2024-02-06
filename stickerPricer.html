@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sticker Pricer</title>
+</head>
+<body>
+    <form id="price_form">
+        <label for="material">Select the material</label>
+        <select name="material" id="material">
+            <option value="glossy_coated">Glossy Coated</option>
+            <option value="holographic">Holographic</option>
+            <option value="glow_in_the_dark">Glow In The Dark</option>
+            <option value="glitter">Glitter</option>
+            <option value="transparent">Transparent</option>
+            <option value="mirror">Mirror</option>
+            <option value="prismatic">Prismatic</option>
+            <option value="borstad_alu">Borstad Alu/option>
+            <option value="epoxy_hi_tack">Epoxy Hi Tack</option>
+            <option value="heavy_duty">Heavy Duty</option>
+            <option value="kraft_paper">Kraft Paper</option>
+            <option value="removable_laser">Removable Laser</option>
+            <option value="wall_sticker">Wall Sticker</option>
+            <option value="pixie_dust">Pixie Dust</option>
+            <option value="glossy_coated_thin">Glossy Coated Thin</option>
+            <option value="sandy_hi_tack">Sandy Hi Tack</option>
+            <option value="reflective_digi">Reflective Digi</option>
+            <option value="double_sided_coverall">Double Sided Coverall</option>
+            <option value="window_laser">Window Laser</option>
+            <option value="glossy_hi_tack_digi">Glossy Hi Tack Gigi</option>
+
+        </select><br><br>
+    <label for="width">Width (cm)</label>
+    <input type="number" id="width" class="width" name="width" step=".1" max="27.5" min="2.5" value="0">
+    <label for="height">Height (cm)</label>
+    <input type="number" id="height" class="height" name="height" step=".1" max="27.5" min="2.5" value="0">
+        <br><br>
+    <label for="quantity">Quantity</label>
+    <input type="number" id="quantity" class="quantity" name="quantity" step="1" value="0">
+        <br><br>
+    <button id="get_price" disabled="disabled">Get Price</button>
+    </form>
+    <div id="price">
+        <p id="stickerapp_price"></p>
+        <p id="our_price"></p>
+    </div>
+
+</body>
+</html>
+
+<script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+
+<script>
+
+    $( document ).ready(function() {
+
+        const submit_button = $("#get_price");
+
+
+        if(!isNaN(width) && !isNaN(height) && !isNaN(qty)) {
+            submit_button.prop('disabled', false);
+        } else {
+            submit_button.prop('disabled', true);
+        }
+
+        validate();
+
+        $(submit_button).click(function(event){
+            event.preventDefault();
+            let material = $("#material").val();
+            let width = $("#width").val() * 10;
+            let height = $("#height").val() * 10;
+            let qty =  $("#quantity").val();
+            let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity="+qty+"&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
+
+            $.get(url, function(data) {
+                $("#stickerapp_price").text("StickerApp price : "+data.price);
+                let price = data.price.replace(/\D/g,'');
+                let our_price = price * .95
+                $("#our_price").text("Our price : £"+our_price);
+            })
+        });
+        $('input').change(function(){
+            let foo = validate();
+            if(validate()) {
+                submit_button.prop('disabled', false);
+            } else {
+                submit_button.prop('disabled', true);
+            }
+        });
+
+    });
+    function validate(){
+        let material = $("#material").val();
+        let width = $("#width").val();
+        let height = $("#height").val();
+        let qty =  $("#quantity").val();
+        if(isNaN(height)||isNaN(width)||isNaN(qty)) {
+            return false;
+        }
+        if(height * 10 > 275 || height * 10 < 25 || width * 10 > 275 || width * 10 < 25) {
+            return false;
+        }
+        let foo = get_min_qty(material,height,width);
+        return true;
+    }
+
+    function get_min_qty(material, height, width){
+        let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity=0&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
+        $.get(url, function(data) {
+            $("#quantity").attr({
+                "min" : data.minQuantity
+            })
+            if($("#quantity").val() < data.minQuantity) {
+                $("#quantity").val(data.minQuantity)
+            }
+           return data;
+        })
+    }
+</script>
