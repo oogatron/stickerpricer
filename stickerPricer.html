@@ -178,6 +178,8 @@
             if($(qty).val() < data.minQuantity) {
                 $(qty).val(data.minQuantity)
             }
+            // Update the label for the quantity input to show the new minimum quantity.
+            $("label[for*='quantity']").html("Quantity (min " +data.minQuantity +")");
             return true;
         })
     }
