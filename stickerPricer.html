@@ -86,6 +86,8 @@
 
     // any questions you can hit me up at ben.codemonkey@gmail.com or on discord where my username is .wellard
 
+    // If you're going to use this code on your website I would consider minifying it. Ask me about this if you're unsure.
+
     $( document ).ready(function() {
 
         const submit_button = $("#get_price");
@@ -104,6 +106,7 @@
             // Stop the button from submitting the form.
             event.preventDefault();
 
+            // gwt form values
             let material = $("#material").val();
             let qty =  $("#quantity").val();
 
@@ -111,17 +114,19 @@
             let width = $("#width").val() * 10;
             let height = $("#height").val() * 10;
 
+            // Construct the URL for the request using the height, width, quantity and material selected.
             let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity="+ qty +"&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
 
+            // Send the request, then do stuff with the data that comes back.
             $.get(url, function(data) {
-            // this code runs when we get the data back from the request.
+                // this code runs when we get the data back from the request.
                 // Show their price.
                 $("#stickerapp_price").text("StickerApp price : " + data.price);
                 // The price has a £ sign in it that we need to remove before we can do any maths with it
                 let formatted_price = data.price.replace(/\D/g,'');
                 // Now we've removed the non-numeric characters we can calculate our price and round it to 2 decimal places.
                 let our_price = (formatted_price * .95).toFixed(2);
-                // Show our price.
+                // Show our price, adding back the £ sign we removed.
                 $("#our_price").text("Our price : £" + our_price);
             })
         });
@@ -152,29 +157,42 @@
     // sets the min value of the quantity input to that value. If the quantity select is set to a value bellow this minimum
     // then we modify that value and set it to the minimum.
     function validate(){
+        // get values from all the form fields
         let material = $("#material").val();
         let width = $("#width").val();
         let height = $("#height").val();
         let qty =  $("#quantity").val();
+
+        // fail if for some reason the height, width or quantity are not numbers.
         if(isNaN(height)||isNaN(width)||isNaN(qty)) {
             return false;
         }
+        // fail if height or width are out of bounds
+        // we multiply by 10 because values are entered in cm but sent to the api in mm.
         if(height * 10 > 275 || height * 10 < 25 || width * 10 > 275 || width * 10 < 25) {
             return false;
         }
+
+        // If we get to here without failing then all inputs are valid, so our set_min_qty function can update the values on the page.
         set_min_qty(material,height,width);
+
         return true;
     }
 
-    // Fires a request at the API, gets the minimum quantity for the given sticker material and dimensions from the response.
+    // This function ires a request at the API, and gets the minimum quantity for the given parameters.
+    // Then it updates the quantity field on the page to use the new minimum quantity.
     function set_min_qty(material, height, width){
+        // Build the url for a GET request with the given parameters. We can pass 0 as the quantity and still get back all the information we need.
         let url = "https://api.stickerapp.com/sticker_wizard/get_as_json?materialPresetName="+ material +"&quantity=0&templateName=path&templateID=0&sheetType=single&incVAT=1&lang=uk&site=cli&widthMM=" + width + "&heightMM="+ height +"&pickedWidthMM=0&pickedHeight=0&laserSave=0&laserPrice=0&note=";
+        // Send the request, then do stuff with the data.
         $.get(url, function(data) {
+        // This runs when we get the data
             let qty = $("#quantity");
+            // set the minimum value of the quantity selector to the new minimum quantity.
             $(qty).attr({
                 "min" : data.minQuantity
             })
-            // If the quantity currently entered on the form is lower than the minimum qty then set it to the minimum.
+            // If the quantity currently entered on the form is lower than the new minimum quantity then set it to the new minimum.
             if($(qty).val() < data.minQuantity) {
                 $(qty).val(data.minQuantity)
             }
